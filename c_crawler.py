@@ -22,4 +22,4 @@ if __name__ == '__main__':
     for process in processes:
         process.join()
 
-    print(time.perf_counter() - start)
+    print(f'Crowling ended in {time.perf_counter() - start} seconds')

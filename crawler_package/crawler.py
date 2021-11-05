@@ -21,6 +21,7 @@ class Crawler:
         response_not_ok_msg = self._get_msg_if_response_not_ok(requests.get(url))
         if response_not_ok_msg:
             print(f'{response_not_ok_msg}')
+            return
         self.urls.add(url)
         self.robot = self._get_robot_parser(url)
         FileManager.make_directory_if_not_exist(FileManager.get_path_for_domain_directory(url))
@@ -93,5 +94,5 @@ if __name__ == '__main__':
 
     start = time.perf_counter()
     c = Crawler()
-    c.start('https://refactoring.guru/')
+    c.start('https://refactoring.gur')
     print(time.perf_counter() - start)
