@@ -70,10 +70,13 @@ class Crawler:
         return urls
 
     def _merger_urls(self, queue_set_urls: Queue) -> list:
+        if queue_set_urls.qsize() == 0:
+            return []
+
         while queue_set_urls.qsize() > 2:
             queue_set_urls.put(queue_set_urls.get().union(queue_set_urls.get()))
 
-        return list(queue_set_urls.get())
+        return list(queue_set_urls.get_nowait())
 
     def _get_robot_parser(self, url: str):
         robots_txt = requests.get(UrlManager.get_url_robots_txt(url))
@@ -87,12 +90,3 @@ class Crawler:
 
     def _can_url_fetch(self, url: str) -> bool:
         return self.robot.allowed(url, '*')
-
-
-if __name__ == '__main__':
-    import time
-
-    start = time.perf_counter()
-    c = Crawler()
-    c.start('https://refactoring.gur')
-    print(time.perf_counter() - start)
