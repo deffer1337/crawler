@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 
 class UrlManager:
@@ -25,3 +25,6 @@ class UrlManager:
     def get_url_path(url: str) -> str:
         return urlparse(url).path
 
+    @staticmethod
+    def url_join(url: str, path: str) -> str:
+        return urljoin(url, path)

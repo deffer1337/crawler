@@ -8,23 +8,23 @@ class TestCrawler():
         self.crawler = Crawler()
 
     def test_can_url_fetch_WhenUrlNotInCurrentDomainAndRobotstxtExist_ThenFalse(self):
-        self.crawler.robot = self.crawler._get_robot_parser('https://refactoring.guru/robots.txt')
+        self.crawler._robot = self.crawler._get_robot_parser('https://refactoring.guru')
         assert self.crawler._can_url_fetch('https://www.google.com/') is False
 
     def test_can_url_fetch_WhenUrlInCurrentDomainAndRobotstxtExist_ThenTrue(self):
-        self.crawler.robot = self.crawler._get_robot_parser('https://refactoring.guru/robots.txt')
+        self.crawler._robot = self.crawler._get_robot_parser('https://refactoring.guru')
         assert self.crawler._can_url_fetch('https://refactoring.guru/')
 
     def test_can_url_fetch_WhenUrlInCurrentDomainAndUrlNotAllowAndRobotstxtExist_ThenFalse(self):
-        self.crawler.robot = self.crawler._get_robot_parser('https://refactoring.guru/robots.txt')
+        self.crawler._robot = self.crawler._get_robot_parser('https://refactoring.guru')
         assert self.crawler._can_url_fetch('https://refactoring.guru/admin') is False
 
     def test_can_url_fetch_WhenUrlNotInCurrentDomainAndRobotstxtNotExist_ThenFalse(self):
-        self.crawler.robot = self.crawler._get_robot_parser('https://insma.urfu.ru/robots.txt')
+        self.crawler._robot = self.crawler._get_robot_parser('https://insma.urfu.ru')
         assert self.crawler._can_url_fetch('https://www.google.com/') is False
 
     def test_can_url_fetch_WhenUrlInCurrentDomainAndRobotstxtNotExist_ThenTrue(self):
-        self.crawler.robot = self.crawler._get_robot_parser('https://insma.urfu.ru/robots.txt')
+        self.crawler._robot = self.crawler._get_robot_parser('https://insma.urfu.ru')
         assert self.crawler._can_url_fetch('https://insma.urfu.ru')
 
     def test_merge_urls_WhenQueueEmptyLength_ThanListEmpty(self):

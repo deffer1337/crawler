@@ -5,17 +5,23 @@ from pathlib import Path
 
 from crawler_package.crawler import Crawler
 from crawler_package.arg_parse import ArgParse
-from crawler_package.file_manager import FileManager
+from infrastructure.file_manager import FileManager
 
 if __name__ == '__main__':
-    FileManager.make_directory_if_not_exist(Path(Path(__file__).resolve().parent, 'Pages'))
+    FileManager.make_directory_if_not_exist(Path(__file__).resolve().parent, 'Pages')
+    FileManager.make_directory_if_not_exist(Path(__file__).resolve().parent, 'Logs')
     start = time.perf_counter()
-    data_args = ArgParse(sys.argv[1:]).parse()
+    try:
+        data_args = ArgParse(sys.argv[1:]).parse()
+    except ValueError as value_error_msg:
+        print(value_error_msg)
+        sys.exit()
+
     crawler = Crawler()
     processes = []
-
-    for site in data_args.sites:
-        proc = Process(target=crawler.start, args=(site, data_args.depth,))
+    for i in range(len(data_args.sites)):
+        proc = Process(target=crawler.start, args=(data_args.sites[i], data_args.depth, data_args.count_threads[i],
+                                                   data_args.sites, data_args.path, data_args.is_archive_option, ))
         processes.append(proc)
         proc.start()
 
