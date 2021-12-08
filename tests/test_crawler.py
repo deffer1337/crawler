@@ -1,9 +1,9 @@
 import queue
 
-from modules.crawler_package import Crawler
+from modules.crawler_package.crawler import Crawler
 
 
-class TestCrawler():
+class TestCrawler:
     def setup_class(self):
         self.crawler = Crawler()
 

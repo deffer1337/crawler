@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Union
+from typing import Union, Dict, List
 from pathlib import Path
 
 
@@ -11,7 +11,7 @@ class ProgramState:
         self._store_backup = store_backup
         self._store_file = store_file
 
-    def add_to_param_value(self, param: str, value):
+    def add_to_param_value(self, param: str, value: Union[Dict, List, int, str, bool, None]):
         self._state[param] = value
 
         return self
