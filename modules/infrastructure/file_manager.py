@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Union
 
-from infrastructure.abstract_file_manager import AbstractFileManager
+from modules.infrastructure.abstract_file_manager import AbstractFileManager
 
 
 class FileManager(AbstractFileManager):

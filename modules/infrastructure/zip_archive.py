@@ -3,7 +3,7 @@ from threading import Lock
 from pathlib import Path
 from typing import Union, List
 
-from infrastructure.abstract_archive import Archive
+from modules.infrastructure.abstract_archive import Archive
 
 
 lock = Lock()
