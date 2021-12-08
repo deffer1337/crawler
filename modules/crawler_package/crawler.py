@@ -1,16 +1,18 @@
 import re
+from pathlib import Path
 from queue import Queue
+from typing import List
 
 import concurrent.futures as pool
 import requests
-from requests import Response
 from bs4 import BeautifulSoup
 from reppy.robots import Robots
-from pathlib import Path
 
-from infrastructure.file_manager import FileManager
-from crawler_package.url_manager import UrlManager
-from infrastructure.zip_archive import ZipArchive
+from modules.utils import get_msg_if_response_not_ok
+from modules.infrastructure.file_manager import FileManager
+from modules.crawler_package.url_manager import UrlManager
+from modules.infrastructure.zip_archive import ZipArchive
+from modules.infrastructure.program_state import ProgramState
 
 
 class Crawler:
@@ -21,26 +23,50 @@ class Crawler:
         self._is_archive_option = False
         self._robot = None
         self._path = None
+        self._crawler_state = None
 
-    def start(self, url: str, max_recursive: int, count_threads: int, sites: list, path: str, is_archive_option: bool) -> None:
-        response_not_ok_msg = self._get_msg_if_response_not_ok(requests.get(url))
-        if response_not_ok_msg:
-            print(f'{response_not_ok_msg}')
-            return
+    def _init_crawler(self, url: str, depth: int, count_threads: int, sites: List[str], path: str,
+                      is_archive_option: bool):
         for site in sites:
             self._domains.add(UrlManager.get_domain(site))
         self._is_archive_option = is_archive_option
-        self._urls.add(url)
         self._robot = self._get_robot_parser(url)
         if is_archive_option:
             self._path = ZipArchive.create_archive_if_not_exists(path, UrlManager.get_domain(url))
         else:
             self._path = FileManager.make_directory_if_not_exist(path, UrlManager.get_domain(url))
 
-        self._scheduler([url], max_recursive, count_threads)
+        self._crawler_state \
+            .add_to_param_value('url', url) \
+            .add_to_param_value('depth', depth) \
+            .add_to_param_value('count_threads', count_threads) \
+            .add_to_param_value('sites', sites) \
+            .add_to_param_value('path', str(path)) \
+            .add_to_param_value('is_archive_option', is_archive_option)
 
-    def _scheduler(self, urls: list, max_depth: int, count_threads: int):
-        while max_depth > 0:
+    def start(self, url: str, depth: int, count_threads: int, sites: List[str], path: str, is_archive_option: bool,
+              crawler_state: ProgramState = None) \
+            -> None:
+        url_domain = UrlManager.get_domain(url)
+        if not crawler_state:
+            self._urls.add(url)
+            self._crawler_state = ProgramState(Path(Path(__file__).resolve().parent.parent.parent, 'States',
+                                                    f'{url_domain}~'),
+                                               Path(Path(Path(__file__).resolve().parent.parent.parent, 'States',
+                                                         f'{url_domain}')))
+        else:
+            self._crawler_state = crawler_state
+            self._urls = set(self._crawler_state.get('_urls'))
+
+        urls = [url] if not crawler_state else crawler_state.get('urls')
+        self._init_crawler(url, depth, count_threads, sites, path, is_archive_option)
+
+        self._scheduler(urls, depth, count_threads)
+
+        print(f'Success. All pages are downloaded from {url_domain}')
+
+    def _scheduler(self, urls: list, depth: int, count_threads: int):
+        while depth > 0:
             if len(urls) == 0:
                 break
 
@@ -50,13 +76,18 @@ class Crawler:
                     queue_set_urls.put(url)
 
             urls = self._merger_urls(queue_set_urls)
-            max_depth -= 1
+            depth -= 1
 
-        print('Success. All pages are downloaded')
+            self._crawler_state.add_to_param_value('urls', urls)
+            self._crawler_state.add_to_param_value('depth', depth)
+            self._crawler_state.add_to_param_value('_urls', list(self._urls))
+            self._crawler_state.dump()
+
+        self._crawler_state.program_finish()
 
     def _fetcher(self, url: str) -> set:
         response = requests.get(url)
-        if self._get_msg_if_response_not_ok(response):
+        if get_msg_if_response_not_ok(response):
             return set()
 
         if self._is_archive_option:
@@ -67,12 +98,6 @@ class Crawler:
                                        UrlManager.get_url_path(url).replace('/', '\\') + ".html"), response.text)
 
         return self._get_urls(response, url)
-
-    def _get_msg_if_response_not_ok(self, response: Response) -> str:
-        try:
-            response.raise_for_status()
-        except Exception as e:
-            return str(e)
 
     def _get_urls(self, response, url: str) -> set:
         urls = set()
@@ -104,12 +129,11 @@ class Crawler:
         robots_txt = requests.get(UrlManager.get_url_robots_txt(url))
 
         if robots_txt.status_code == requests.codes.ok:
-            robot_parser = Robots.parse(UrlManager.get_domain_with_protocol(url), robots_txt.text)
+            robot_parser = Robots.parse(UrlManager.get_netloc_with_scheme(url), robots_txt.text)
         else:
-            robot_parser = Robots.parse(UrlManager.get_domain_with_protocol(url), '')
+            robot_parser = Robots.parse(UrlManager.get_netloc_with_scheme(url), '')
 
         return robot_parser
 
     def _can_url_fetch(self, url: str) -> bool:
         return self._robot.allowed(url, '*')
-
