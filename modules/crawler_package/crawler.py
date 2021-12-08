@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 from queue import Queue
+from threading import Lock
 from typing import List
 
 import concurrent.futures as pool
@@ -8,11 +9,13 @@ import requests
 from bs4 import BeautifulSoup
 from reppy.robots import Robots
 
-from modules.utils import get_msg_if_response_not_ok
+from modules.utils import get_msg_if_response_not_ok, wrapper_requests_get
 from modules.infrastructure.file_manager import FileManager
 from modules.crawler_package.url_manager import UrlManager
 from modules.infrastructure.zip_archive import ZipArchive
 from modules.infrastructure.program_state import ProgramState
+
+_lock = Lock()
 
 
 class Crawler:
@@ -71,8 +74,8 @@ class Crawler:
                 break
 
             queue_set_urls = Queue()
-            with pool.ThreadPoolExecutor(count_threads) as executer:
-                for url in executer.map(self._fetcher, urls):
+            with pool.ThreadPoolExecutor(count_threads) as executor:
+                for url in executor.map(self._fetcher, urls):
                     queue_set_urls.put(url)
 
             urls = self._merger_urls(queue_set_urls)
@@ -86,7 +89,12 @@ class Crawler:
         self._crawler_state.program_finish()
 
     def _fetcher(self, url: str) -> set:
-        response = requests.get(url)
+        delay = self._robot.agent('*').delay
+        if delay:
+            response = wrapper_requests_get(url, delay)
+        else:
+            response = requests.get(url)
+
         if get_msg_if_response_not_ok(response):
             return set()
 
@@ -99,7 +107,7 @@ class Crawler:
 
         return self._get_urls(response, url)
 
-    def _get_urls(self, response, url: str) -> set:
+    def _get_urls(self, response: requests.Response, url: str) -> set:
         urls = set()
         soup = BeautifulSoup(response.content, 'html.parser')
 
