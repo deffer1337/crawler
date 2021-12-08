@@ -1,6 +1,6 @@
 import queue
 
-from crawler_package.crawler import Crawler
+from modules.crawler_package import Crawler
 
 
 class TestCrawler():
