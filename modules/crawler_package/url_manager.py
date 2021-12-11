@@ -1,4 +1,3 @@
-import sys
 from urllib.parse import urlparse, urljoin
 
 import requests
@@ -8,10 +7,21 @@ class UrlManager:
 
     @staticmethod
     def is_absolute(url: str) -> bool:
+        """
+        Checking url to absolute
+
+        :param url: Url to check
+        :return: Is the url absolute
+        """
         return bool(urlparse(url).netloc)
 
     @staticmethod
     def get_netloc_with_scheme(url: str) -> str:
+        """
+
+        :param url:
+        :return:
+        """
         url_parse = urlparse(url)
         return f'{url_parse.scheme}://{url_parse.netloc}'
 
@@ -32,17 +42,38 @@ class UrlManager:
 
     @staticmethod
     def get_domain(url: str) -> str:
+        """
+        Get domain from url
+
+        :param url: The url from which to take the domain
+        :return: Domain
+        """
         return urlparse(url).netloc
 
     @staticmethod
     def get_url_robots_txt(url: str) -> str:
+        """
+        Get path to robots.txt in this url
+
+        :param url: Url where to need add the path to robots.txt
+        :return: Url with path to robots.txt in this url
+        """
         url_parse = urlparse(url)
         return f'{url_parse.scheme}://{url_parse.netloc}/robots.txt'
 
     @staticmethod
     def get_url_path(url: str) -> str:
+        """
+        Get path from url
+
+        :param url: Url where to get the path
+        :return: Path from url
+        """
         return urlparse(url).path
 
     @staticmethod
     def url_join(url: str, path: str) -> str:
+        """
+        Url join
+        """
         return urljoin(url, path)

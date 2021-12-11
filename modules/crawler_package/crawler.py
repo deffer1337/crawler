@@ -50,6 +50,18 @@ class Crawler:
     def start(self, url: str, depth: int, count_threads: int, sites: List[str], path: str, is_archive_option: bool,
               crawler_state: ProgramState = None) \
             -> None:
+        """
+        Init crawler and start.
+
+        :param url: Url to the site that needs to be bypassed
+        :param depth: Site crawl depth
+        :param count_threads: The number of streams when downloading pages from the site
+        :param sites: Sites that can be crawled
+        :param path: The path to save the pages
+        :param is_archive_option: An option that specifies whether to archive
+        :param crawler_state: The state of the crawler in which there was an error
+        :return: None
+        """
         url_domain = UrlManager.get_domain(url)
         if not crawler_state:
             self._urls.add(url)

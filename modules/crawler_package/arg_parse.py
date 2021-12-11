@@ -13,7 +13,7 @@ DEFAULT_THREADS = 200
 
 
 class ArgParse:
-    """Реализация парсера консоли"""
+    """Console parser for crawler"""
     def __init__(self, args):
         self.parser = argparse.ArgumentParser(description='This is crawler without indexing.\n')
         self.args = args
@@ -35,7 +35,11 @@ class ArgParse:
         self.parser.add_argument('-p', default=Path(Path(__file__).resolve().parent.parent.parent, 'Pages'), type=str,
                                  help='')
 
-    def parse(self):
+    def parse(self) -> DataArgs:
+        """
+        Parsing console arguments
+        :return: DataArgs
+        """
         parameters = self.parser.parse_args(self.args)
         if not Path(parameters.p).exists():
             raise ValueError('Path does not exists')
