@@ -1,3 +1,4 @@
+import logging
 import re
 from pathlib import Path
 from queue import Queue
@@ -27,6 +28,7 @@ class Crawler:
         self._robot = None
         self._path = None
         self._crawler_state = None
+        self.logger = logging.getLogger('crawl')
 
     def _init_crawler(self, url: str, depth: int, count_threads: int, sites: List[str], path: str,
                       is_archive_option: bool):
@@ -39,6 +41,7 @@ class Crawler:
         else:
             self._path = FileManager.make_directory_if_not_exist(path, UrlManager.get_domain(url))
 
+        self.logger.info('Saved the parameters with which crawling started.')
         self._crawler_state \
             .add_to_param_value('url', url) \
             .add_to_param_value('depth', depth) \
@@ -48,8 +51,7 @@ class Crawler:
             .add_to_param_value('is_archive_option', is_archive_option)
 
     def start(self, url: str, depth: int, count_threads: int, sites: List[str], path: str, is_archive_option: bool,
-              crawler_state: ProgramState = None) \
-            -> None:
+              crawler_state: ProgramState = None) -> None:
         """
         Init crawler and start.
 
@@ -78,6 +80,7 @@ class Crawler:
 
         self._scheduler(urls, depth, count_threads)
 
+        self.logger.info(f'End crawling. All pages are downloaded from {url_domain}.')
         print(f'Success. All pages are downloaded from {url_domain}')
 
     def _scheduler(self, urls: list, depth: int, count_threads: int):
@@ -87,8 +90,8 @@ class Crawler:
 
             queue_set_urls = Queue()
             with pool.ThreadPoolExecutor(count_threads) as executor:
-                for url in executor.map(self._fetcher, urls):
-                    queue_set_urls.put(url)
+                for set_urls in executor.map(self._fetcher, urls):
+                    queue_set_urls.put(set_urls)
 
             urls = self._merger_urls(queue_set_urls)
             depth -= 1
@@ -102,26 +105,27 @@ class Crawler:
 
     def _fetcher(self, url: str) -> set:
         delay = self._robot.agent('*').delay
-        if delay:
-            response = wrapper_requests_get(url, delay)
-        else:
-            response = requests.get(url)
+        response = wrapper_requests_get(url, delay) if delay else requests.get(url)
 
-        if get_msg_if_response_not_ok(response):
+        msg = get_msg_if_response_not_ok(response)
+        if msg:
+            self.logger.error(f'Status code is not OK. {msg}')
             return set()
 
         if self._is_archive_option:
             ZipArchive.save_file_in_archive(self._path, UrlManager.get_url_path(url).replace('/', '\\') + ".html",
                                             response.text.encode(), f'/{UrlManager.get_domain(url)}')
+            self.logger.info(f'Page {url} downloaded in archive.')
         else:
             FileManager.save_file(Path(self._path,
                                        UrlManager.get_url_path(url).replace('/', '\\') + ".html"), response.text)
+            self.logger.info(f'Page {url} downloaded.')
 
-        return self._get_urls(response, url)
+        return self._get_urls(response.content, url)
 
-    def _get_urls(self, response: requests.Response, url: str) -> set:
+    def _get_urls(self, content, url: str) -> set:
         urls = set()
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(content, 'html.parser')
 
         for link in soup.find_all('a'):
             link = str(link.get('href'))
@@ -129,10 +133,11 @@ class Crawler:
             if self._pattern.fullmatch(link):
                 if not UrlManager.is_absolute(link):
                     link = UrlManager.url_join(url, link)
-                    if (self._can_url_fetch(link) or UrlManager.get_domain(link) in self._domains) and \
-                            link not in self._urls:
-                        self._urls.add(link)
-                        urls.add(link)
+
+                if (self._can_url_fetch(link) or UrlManager.get_domain(link) in self._domains) and \
+                        link not in self._urls:
+                    self._urls.add(link)
+                    urls.add(link)
 
         return urls
 
