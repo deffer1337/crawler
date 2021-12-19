@@ -21,19 +21,21 @@ class ArgParse:
 
     def _add_options(self):
         self.parser.add_argument('sites', nargs='+', type=str,
-                                 help='Sites from which the crawler will work (there may be one or more)')
+                                 help='Sites from which the crawler will work (separated by a space)')
 
         self.parser.add_argument('-d', type=int, default=3,
                                  help='The number of transitions in depth from a given page')
 
         self.parser.add_argument('-t', nargs='+', type=int, default=[],
-                                 help='Numbers of threads for downloading the corresponding pages')
+                                 help='The numbers of threads for downloading each corresponding pages'
+                                      '(separated by a space)')
 
         self.parser.add_argument('-a', action='store_true',
-                                 help='')
+                                 help='Saving all pages to the archive.')
 
         self.parser.add_argument('-p', default=Path(Path(__file__).resolve().parent.parent.parent, 'Pages'), type=str,
-                                 help='')
+                                 help='The path to the folder where all downloaded pages will be saved. '
+                                      'By default, the "Pages" folder is created in the current project.')
 
     def parse(self) -> DataArgs:
         """
@@ -42,11 +44,16 @@ class ArgParse:
         """
         parameters = self.parser.parse_args(self.args)
         if not Path(parameters.p).exists():
-            raise ValueError('Path does not exists')
+            raise ValueError(f'Path does not exists. \n'
+                             f'Trying crawl {parameters.sites} with incorrect argument: path = {parameters.p}')
         if parameters.d < 1:
-            raise ValueError('Depth should be more then 0')
+            raise ValueError(f'Depth should be more then 0. \n'
+                             f'Trying crawl {parameters.sites} with incorrect argument: depth = {parameters.d}')
         if len(parameters.t) > len(parameters.sites):
-            raise ValueError('Numbers of threads should be less than count sites')
+            raise ValueError('The number of threads is specified for a larger '
+                             'number of pages than the transmitted ones. \n'
+                             f'Trying crawl {len(parameters.sites)} sites: {parameters.sites} '
+                             f'with incorrect number of threads = {len(parameters.t)}')
 
         for site in parameters.sites:
             is_not_correct_url_msg = UrlManager.is_not_correct_url(site)
