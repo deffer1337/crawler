@@ -1,4 +1,5 @@
 import queue
+import re
 
 from modules.crawler_package.crawler import Crawler
 
@@ -35,4 +36,23 @@ class TestCrawler:
         queue_set.put({'1'})
         assert len(self.crawler._merger_urls(queue_set)) > 0
 
+    def test_check_link_on_pattern(self):
+        link = 'http://localhost/bin/'
+        assert re.match(self.crawler._pattern, link) is not None
 
+    def test_get_urls_when_links_is_absolute(self):
+        html = '<a href="https://example.com/lectures/">Лекции</a>' \
+               '<a href="https://example.com/lectures/networks/">Сети</a>'
+        url = 'example.com'
+        self.crawler._domains.add(url)
+        links = self.crawler._get_urls(html.encode("utf-8"), url)
+        assert len(links) == 2
+
+    def test_get_urls_when_links_is_not_absolute(self):
+        html = '<a href="/lectures/">Лекции</a>' \
+               '<a href="/lectures/networks/">Сети</a>' \
+               '<a href="/homeworks/networks/tls/">TLS</a>'
+        url = 'example.com'
+        self.crawler._domains.add(url)
+        links = self.crawler._get_urls(html.encode("utf-8"), url)
+        assert len(links) == 3
