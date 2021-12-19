@@ -76,7 +76,6 @@ def _crash_recovery(path_to_directory_with_states: Union[str, Path]):
 
 if __name__ == '__main__':
     FileManager.make_directory_if_not_exist(Path(__file__).resolve().parent, 'Pages')
-    FileManager.make_directory_if_not_exist(Path(__file__).resolve().parent, 'Logs')
     FileManager.make_directory_if_not_exist(Path(__file__).resolve().parent, 'States')
     logger = logging.getLogger('crawl')
     start = time.perf_counter()
