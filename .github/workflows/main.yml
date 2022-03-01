@@ -25,14 +25,13 @@ jobs:
           if [ -f Pipfile ]; then 
             pip install pipenv 
             pipenv install;
-            pipenv shell;
           fi
       - name: Check lint
         run: |
           make check_lint
       - name: Test with pytest
         run: |
-          python -m pytest
+          pipenv run python -m pytest
       - name: Check coverage
         run: |
-          python -m pytest --cov=modules
+          pipenv run python -m pytest --cov=modules
