@@ -25,6 +25,7 @@ jobs:
           if [ -f Pipfile ]; then 
             pip install pipenv 
             pipenv install;
+            pipenv install pytest-cov
           fi
       - name: Check lint
         run: |
