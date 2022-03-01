@@ -22,7 +22,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
-          if [ -f Pipfile ]; [ then pip install pipenv ] && [ pipenv shell ] && [ pipenv install ]; fi
+          if [ -f Pipfile ]; then 
+            pip install pipenv 
+            pipenv shell 
+            pipenv install; 
+          fi
       - name: Check lint
         run: |
           make check_lint
