@@ -7,6 +7,7 @@ class DataArgs:
     """
     Console args for crawler
     """
+
     sites: List[str]
     depth: int
     count_threads: List[int]

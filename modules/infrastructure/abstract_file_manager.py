@@ -2,14 +2,13 @@ from abc import ABC, abstractmethod
 
 
 class AbstractFileManager(ABC):
+    def __init__(self, path):
+        self._path = path
 
-    @staticmethod
     @abstractmethod
-    def save_file(path, data):
+    def save_file(self, data):
         pass
 
-    @staticmethod
     @abstractmethod
-    def make_directory_if_not_exist(path, directory_name):
+    def make_directory_if_not_exist(self, directory_name):
         pass
-

@@ -1,12 +1,13 @@
 import json
 import os
-from typing import Union, Dict, List
 from pathlib import Path
+from typing import Dict, List, Union
 
 
 class ProgramState:
-    def __init__(self, store_backup: Union[str, Path] = '.program.state~',
-                 store_file: Union[str, Path] = '.program.state'):
+    def __init__(
+        self, store_backup: Union[str, Path] = ".program.state~", store_file: Union[str, Path] = ".program.state"
+    ):
         self._state = {}
         self._store_backup = store_backup
         self._store_file = store_file
@@ -24,7 +25,7 @@ class ProgramState:
 
     def dump(self):
         try:
-            with open(self._store_backup, 'w') as f:
+            with open(self._store_backup, "w") as f:
                 json.dump(self._state, f)
 
             os.rename(self._store_backup, self._store_file)
@@ -40,7 +41,7 @@ class ProgramState:
             os.remove(self._store_backup)
 
         if os.path.isfile(self._store_file):
-            with open(self._store_file, 'r') as f:
+            with open(self._store_file, "r") as f:
                 state = json.load(f)
                 self._state = state
 
@@ -57,10 +58,9 @@ class ProgramState:
     def get_states_from_directory(path_to_directory: Union[str, Path]):
         name_files = []
         for name_file in os.listdir(path_to_directory):
-            if name_file.find('~') != -1:
+            if name_file.find("~") != -1:
                 os.remove(Path(path_to_directory, name_file))
             else:
                 name_files.append(name_file)
 
         return name_files
-

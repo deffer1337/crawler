@@ -2,22 +2,27 @@ from abc import ABC, abstractmethod
 
 
 class Archive(ABC):
-    @staticmethod
+    def __init__(self, path):
+        self._path = path
+
     @abstractmethod
-    def create_archive_if_not_exists(path, name):
+    def create_archive_if_not_exists(self, name):
         pass
 
-    @staticmethod
     @abstractmethod
-    def create_directory_in_archive(path_to_archive, directory_name):
+    def create_directory_in_archive(self, directory_name):
         pass
 
-    @staticmethod
     @abstractmethod
-    def save_file_in_archive(path, file_name, data, directory_in_archive):
+    def save_file_in_archive(self, file_name, data, directory_in_archive):
         pass
 
     @staticmethod
     @abstractmethod
     def is_archive(path):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def get_file_names_from_archive(path):
         pass

@@ -4,7 +4,7 @@ from threading import Lock
 
 import requests
 
-answer_dict = {'yes': True, 'y': True, 'no': False, 'n': False}
+answer_dict = {"yes": True, "y": True, "no": False, "n": False}
 _lock = Lock()
 
 
@@ -19,7 +19,7 @@ def get_answer_yes_or_no() -> bool:
     try:
         answer = answer_dict[input().lower()]
     except KeyError:
-        print('Abort.')
+        print("Abort.")
         sys.exit()
 
     return answer
